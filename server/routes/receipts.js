@@ -1,7 +1,7 @@
 // ─── RECEIPTS API ───
 import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { query, execute } from '../db.js';
+import { query, queryOne, execute } from '../db.js';
 import eventStore from '../eventStore.js';
 import asyncHandler from '../middleware/asyncHandler.js';
 import cache from '../redis.js';
