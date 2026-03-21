@@ -75,34 +75,23 @@ router.post('/', asyncHandler(async (req, res) => {
   });
 }));
 
-// PUT send invoice (async via worker)
+// PUT mark invoice as sent
 router.put('/:id/send', asyncHandler(async (req, res) => {
   const inv = await queryOne('SELECT * FROM invoices WHERE id = $1', [req.params.id]);
   if (!inv) return res.status(404).json({ error: 'Invoice not found' });
 
-  const jobId = uuidv4();
+  await execute('UPDATE invoices SET status = $1 WHERE id = $2', ['sent', inv.id]);
 
   await eventStore.append({
-    eventType: 'INVOICE_SEND_REQUESTED',
+    eventType: 'INVOICE_SENT',
     userId: req.headers['x-user-id'] || 'admin-default',
     entityType: 'invoice',
     entityId: inv.id,
-    payload: { number: inv.number, customer: inv.customer_name, jobId, method: 'email' },
+    payload: { number: inv.number, customer: inv.customer_name },
   });
 
-  await cache.setProcessingState(jobId, {
-    status: 'queued',
-    type: 'invoice_send',
-    entityId: inv.id,
-    queuedAt: new Date().toISOString(),
-  });
-
-  res.json({
-    status: 'processing',
-    jobId,
-    message: `Invoice ${inv.number} is being sent...`,
-    _entityId: inv.id,
-  });
+  cache.del('dashboard:cache');
+  res.json({ status: 'sent', invoiceId: inv.id, number: inv.number });
 }));
 
 // PUT mark invoice as paid
@@ -110,21 +99,17 @@ router.put('/:id/pay', asyncHandler(async (req, res) => {
   const inv = await queryOne('SELECT * FROM invoices WHERE id = $1', [req.params.id]);
   if (!inv) return res.status(404).json({ error: 'Invoice not found' });
 
+  await execute('UPDATE invoices SET status = $1 WHERE id = $2', ['paid', inv.id]);
+
   await eventStore.append({
     eventType: 'PAYMENT_RECEIVED',
     userId: req.headers['x-user-id'] || 'admin-default',
     entityType: 'invoice',
     entityId: inv.id,
-    payload: {
-      number: inv.number,
-      customer: inv.customer_name,
-      amount: inv.total,
-      method: req.body?.method || 'bank_transfer',
-      before: { status: inv.status },
-      after: { status: 'paid' },
-    },
+    payload: { number: inv.number, customer: inv.customer_name, amount: inv.total },
   });
 
+  cache.del('dashboard:cache');
   res.json({ status: 'paid', invoiceId: inv.id, number: inv.number });
 }));
 

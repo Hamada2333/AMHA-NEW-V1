@@ -48,9 +48,17 @@ export const InvoicesPage = () => {
 
   const handleSend = async (id, number) => {
     try {
-      addToast(`Sending ${number}...`, 'processing');
       await api.put(`/invoices/${id}/send`);
-      setInvoices(p => p.map(i => i.id === id ? { ...i, status: 'processing' } : i));
+      setInvoices(p => p.map(i => i.id === id ? { ...i, status: 'sent' } : i));
+      addToast(`${number} marked as sent`, 'success');
+    } catch (err) { addToast(err.message, 'error'); }
+  };
+
+  const handlePay = async (id, number) => {
+    try {
+      await api.put(`/invoices/${id}/pay`);
+      setInvoices(p => p.map(i => i.id === id ? { ...i, status: 'paid' } : i));
+      addToast(`${number} marked as paid`, 'success');
     } catch (err) { addToast(err.message, 'error'); }
   };
 
@@ -102,8 +110,13 @@ export const InvoicesPage = () => {
                   <td>
                     <div style={{ display: 'flex', gap: '4px' }}>
                       {(i.status === 'draft' || i.status === 'overdue') && (
-                        <button onClick={() => handleSend(i.id, i.number)} title="Send" style={{ background: 'none', border: 'none', color: THEME.accent, padding: '4px', cursor: 'pointer', borderRadius: '6px' }}>
+                        <button onClick={() => handleSend(i.id, i.number)} title="Mark as Sent" style={{ background: 'none', border: 'none', color: THEME.accent, padding: '4px', cursor: 'pointer', borderRadius: '6px' }}>
                           <Icon name="activity" size={15} />
+                        </button>
+                      )}
+                      {i.status === 'sent' && (
+                        <button onClick={() => handlePay(i.id, i.number)} title="Mark as Paid" style={{ background: 'none', border: 'none', color: THEME.success, padding: '4px', cursor: 'pointer', borderRadius: '6px' }}>
+                          <Icon name="check" size={15} />
                         </button>
                       )}
                       <button onClick={() => setConfirmDelete(i)} title="Delete" style={{ background: 'none', border: 'none', color: THEME.danger, padding: '4px', cursor: 'pointer', borderRadius: '6px' }}>
