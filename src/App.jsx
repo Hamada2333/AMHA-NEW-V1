@@ -81,7 +81,11 @@ export default function App() {
     }
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    // Show the app after 4 seconds regardless — Render free tier wakes up slowly
+    const timeout = setTimeout(() => setLoading(false), 4000);
+    loadData().finally(() => { clearTimeout(timeout); setLoading(false); });
+  }, [loadData]);
 
   useEffect(() => {
     let ws;
@@ -123,6 +127,7 @@ export default function App() {
           <div style={{ textAlign: "center" }}>
             <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: `linear-gradient(135deg, ${THEME.accent}, #8B5CF6)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", fontWeight: 800, color: "#fff", margin: "0 auto 16px" }}>A</div>
             <p style={{ color: THEME.textMuted, fontSize: "14px" }}>Loading AMHA ERP...</p>
+            <p style={{ color: THEME.textDim, fontSize: "12px", marginTop: "8px" }}>Waking up server, please wait...</p>
           </div>
         </div>
       </>
