@@ -1,0 +1,10 @@
+.vercel
+.env
+node_modules
+dist
+*.log
+build*.log
+server/amha_erp.db
+server/amha_erp.db-shm
+server/amha_erp.db-wal
+.DS_Store
