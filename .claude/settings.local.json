@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit -m \"Cascade delete invoices and orders when deleting a customer:*)",
+      "Bash(git push:*)",
+      "Bash(git commit -m \"Fix invoice send/pay to update DB status; add Mark as Paid button:*)",
+      "Bash(npx vercel:*)",
+      "Bash(git commit -m \"Dashboard derives stats from live AppContext state — updates instantly on any change:*)",
+      "Bash(git commit -m \"Add reports route for /api/reports/generate:*)",
+      "Bash(git commit -m \"Add file attachments to all features; fix Settings page; add reports & attachments backend routes:*)"
+    ]
+  }
+}

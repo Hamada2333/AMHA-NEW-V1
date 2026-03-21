@@ -199,6 +199,27 @@ export async function initSchema() {
       balance REAL DEFAULT 0,
       company_id TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS attachments (
+      id TEXT PRIMARY KEY,
+      entity_type TEXT NOT NULL,
+      entity_id TEXT NOT NULL,
+      filename TEXT NOT NULL,
+      mimetype TEXT NOT NULL,
+      size INTEGER DEFAULT 0,
+      data TEXT NOT NULL,
+      company_id TEXT DEFAULT 'amha-default',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_attachments_entity ON attachments(entity_type, entity_id);
+
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      company_id TEXT DEFAULT 'amha-default',
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
   `);
 }
 

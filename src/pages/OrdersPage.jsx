@@ -13,6 +13,7 @@ import EmptyState from '../components/ui/EmptyState';
 import Modal from '../components/ui/Modal';
 import { FormField, FormRow } from '../components/ui/Form';
 import Card from '../components/ui/Card';
+import FileAttachment from '../components/ui/FileAttachment';
 
 export const OrdersPage = () => {
   const { orders, customers, setOrders, setInvoices } = useAppContext();
@@ -21,6 +22,7 @@ export const OrdersPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [formData, setFormData] = useState({ customerId: '', amount: '' });
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [attachingId, setAttachingId] = useState(null);
 
   const filtered = orders.filter(o => {
     const s = search.toLowerCase();
@@ -102,6 +104,9 @@ export const OrdersPage = () => {
                           <Icon name="invoice" size={15} />
                         </button>
                       )}
+                      <button onClick={() => setAttachingId(o.id)} title="Attachments" style={{ background: 'none', border: 'none', color: THEME.textMuted, padding: '4px', cursor: 'pointer', borderRadius: '6px' }}>
+                        <Icon name="upload" size={15} />
+                      </button>
                       <button onClick={() => setConfirmDelete(o)} title="Delete" style={{ background: 'none', border: 'none', color: THEME.danger, padding: '4px', cursor: 'pointer', borderRadius: '6px' }}>
                         <Icon name="trash" size={15} />
                       </button>
@@ -129,6 +134,13 @@ export const OrdersPage = () => {
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
           <Btn variant="ghost" onClick={() => setModalOpen(false)}>Cancel</Btn>
           <Btn onClick={handleCreate}>Create Order</Btn>
+        </div>
+      </Modal>
+
+      <Modal open={!!attachingId} onClose={() => setAttachingId(null)} title="Order Attachments" width={500}>
+        <FileAttachment entityType="order" entityId={attachingId} />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
+          <Btn variant="ghost" onClick={() => setAttachingId(null)}>Close</Btn>
         </div>
       </Modal>
 

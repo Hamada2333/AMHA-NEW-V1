@@ -10,6 +10,7 @@ import Modal from '../components/ui/Modal';
 import { FormField, FormRow } from '../components/ui/Form';
 import Card from '../components/ui/Card';
 import Icon from '../components/ui/Icon';
+import FileAttachment from '../components/ui/FileAttachment';
 
 const STATUSES = ['new', 'contacted', 'qualified', 'converted'];
 const STATUS_COLORS = { new: THEME.accent, contacted: THEME.warning, qualified: THEME.success, converted: '#8B5CF6' };
@@ -157,6 +158,7 @@ export const CRMPage = () => {
         <FormField label="Notes">
           <input value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} placeholder="Any relevant details..." style={{ marginTop: '16px' }} />
         </FormField>
+        <FileAttachment entityType="lead" entityId={editingId} />
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
           <Btn variant="ghost" onClick={() => setModalOpen(false)}>Cancel</Btn>
           <Btn onClick={handleSave}>{editingId ? 'Save Changes' : 'Add Lead'}</Btn>

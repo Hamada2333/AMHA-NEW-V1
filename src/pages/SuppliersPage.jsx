@@ -11,6 +11,7 @@ import Modal from '../components/ui/Modal';
 import { FormField, FormRow } from '../components/ui/Form';
 import Card from '../components/ui/Card';
 import Icon from '../components/ui/Icon';
+import FileAttachment from '../components/ui/FileAttachment';
 
 const EMPTY_FORM = { name: '', email: '', phone: '', address: '', category: '' };
 
@@ -131,6 +132,7 @@ export const SuppliersPage = () => {
             <input value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} placeholder="City, Area" />
           </FormField>
         </FormRow>
+        <FileAttachment entityType="supplier" entityId={editingId} />
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
           <Btn variant="ghost" onClick={() => setModalOpen(false)}>Cancel</Btn>
           <Btn onClick={handleSave}>{editingId ? 'Save Changes' : 'Save Supplier'}</Btn>
