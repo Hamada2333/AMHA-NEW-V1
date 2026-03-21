@@ -69,14 +69,8 @@ router.delete('/:id', asyncHandler(async (req, res) => {
   const existing = await queryOne('SELECT id FROM customers WHERE id = $1', [req.params.id]);
   if (!existing) return res.status(404).json({ error: 'Customer not found' });
 
-  const [invCount, ordCount] = await Promise.all([
-    queryOne('SELECT COUNT(*) as count FROM invoices WHERE customer_id = $1', [req.params.id]),
-    queryOne('SELECT COUNT(*) as count FROM orders WHERE customer_id = $1', [req.params.id]),
-  ]);
-  if (parseInt(invCount.count) > 0 || parseInt(ordCount.count) > 0) {
-    return res.status(409).json({ error: 'Cannot delete customer with existing invoices or orders. Delete those first.' });
-  }
-
+  await execute('DELETE FROM invoices WHERE customer_id = $1', [req.params.id]);
+  await execute('DELETE FROM orders WHERE customer_id = $1', [req.params.id]);
   await execute('DELETE FROM customers WHERE id = $1', [req.params.id]);
   await eventStore.append({
     eventType: 'CUSTOMER_DELETED',
