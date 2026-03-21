@@ -2,7 +2,7 @@ import React from 'react';
 import THEME from '../../styles/theme';
 import Icon from './Icon';
 
-export const StatCard = ({ title, value, icon, color }) => (
+export const StatCard = ({ title, icon, color }) => (
   <div style={{
     background: THEME.card, borderRadius: "16px", padding: "20px",
     border: `1px solid ${THEME.border}`, position: "relative", overflow: "hidden"
@@ -16,7 +16,6 @@ export const StatCard = ({ title, value, icon, color }) => (
       </div>
       <h3 style={{ fontSize: "14px", fontWeight: 600, color: THEME.textMuted }}>{title}</h3>
     </div>
-    <p style={{ fontSize: "28px", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: THEME.text }}>{value}</p>
   </div>
 );
 
