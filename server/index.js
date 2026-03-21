@@ -21,6 +21,7 @@ import paymentRoutes from './routes/payments.js';
 import receiptRoutes from './routes/receipts.js';
 import eventRoutes from './routes/events.js';
 import dashboardRoutes from './routes/dashboard.js';
+import reportRoutes from './routes/reports.js';
 
 import { initInvoiceWorker } from './workers/invoiceWorker.js';
 import { initReportWorker } from './workers/reportWorker.js';
@@ -46,6 +47,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/receipts', receiptRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/reports', reportRoutes);
 
 // ─── HEALTH CHECK ───
 app.get('/api/health', async (_req, res) => {
