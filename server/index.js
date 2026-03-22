@@ -23,6 +23,7 @@ import eventRoutes from './routes/events.js';
 import dashboardRoutes from './routes/dashboard.js';
 import reportRoutes from './routes/reports.js';
 import attachmentRoutes from './routes/attachments.js';
+import accountingRoutes from './routes/accounting.js';
 
 import { initInvoiceWorker } from './workers/invoiceWorker.js';
 import { initReportWorker } from './workers/reportWorker.js';
@@ -50,6 +51,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/attachments', attachmentRoutes);
+app.use('/api/accounting', accountingRoutes);
 
 // ─── HEALTH CHECK ───
 app.get('/api/health', async (_req, res) => {
