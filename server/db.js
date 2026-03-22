@@ -26,6 +26,13 @@ try {
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
+
+// Prevent idle connection drops from crashing the process
+pool.on('error', (err) => {
+  console.error('[DB Pool] Idle client error (non-fatal):', err.message);
 });
 
 export async function query(sql, params = []) {
