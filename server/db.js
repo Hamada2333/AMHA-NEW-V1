@@ -102,9 +102,12 @@ export async function initSchema() {
       number TEXT UNIQUE NOT NULL,
       customer_id TEXT REFERENCES customers(id),
       customer_name TEXT,
+      att TEXT DEFAULT '',
+      container_number TEXT DEFAULT '',
       date TEXT,
       due_date TEXT,
       subtotal REAL DEFAULT 0,
+      transport_fees REAL DEFAULT 0,
       tax REAL DEFAULT 0,
       total REAL DEFAULT 0,
       status TEXT DEFAULT 'draft',
@@ -112,6 +115,10 @@ export async function initSchema() {
       company_id TEXT,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+
+    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS att TEXT DEFAULT '';
+    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS container_number TEXT DEFAULT '';
+    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS transport_fees REAL DEFAULT 0;
 
     CREATE TABLE IF NOT EXISTS orders (
       id TEXT PRIMARY KEY,

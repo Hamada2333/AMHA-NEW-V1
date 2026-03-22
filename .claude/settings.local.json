@@ -8,7 +8,10 @@
       "Bash(npx vercel:*)",
       "Bash(git commit -m \"Dashboard derives stats from live AppContext state — updates instantly on any change:*)",
       "Bash(git commit -m \"Add reports route for /api/reports/generate:*)",
-      "Bash(git commit -m \"Add file attachments to all features; fix Settings page; add reports & attachments backend routes:*)"
+      "Bash(git commit -m \"Add file attachments to all features; fix Settings page; add reports & attachments backend routes:*)",
+      "Bash(git commit -m \"Show report results in modal after generation:*)",
+      "Bash(curl -s -X POST https://amhanew.onrender.com/api/reports/generate -H \"Content-Type: application/json\" -d '{\"\"reportId\"\":\"\"pl\"\"}')",
+      "Bash(git commit -m \"Show app after 4s timeout instead of waiting for slow Render cold start:*)"
     ]
   }
 }

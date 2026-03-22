@@ -7,7 +7,6 @@ import asyncHandler from '../middleware/asyncHandler.js';
 import cache from '../redis.js';
 
 const router = Router();
-const TAX_RATE = 0.05;
 
 // GET all invoices
 router.get('/', asyncHandler(async (_req, res) => {
@@ -31,7 +30,7 @@ router.get('/:id/history', asyncHandler(async (req, res) => {
 
 // POST create invoice
 router.post('/', asyncHandler(async (req, res) => {
-  const { customerId, items } = req.body;
+  const { customerId, att, containerNumber, items, transportFees, tax: manualTax } = req.body;
 
   const customer = await queryOne('SELECT * FROM customers WHERE id = $1', [customerId]);
   if (!customer) return res.status(400).json({ error: 'Customer not found' });
@@ -43,35 +42,41 @@ router.post('/', asyncHandler(async (req, res) => {
   const date = new Date().toISOString().split('T')[0];
   const dueDate = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
 
-  const resolvedItems = await Promise.all(items.map(async item => {
-    const prod = await queryOne('SELECT * FROM products WHERE id = $1', [item.productId]);
-    return { product: prod?.name || item.product, qty: Number(item.qty), price: prod?.price || Number(item.price) };
+  const resolvedItems = (items || []).map(item => ({
+    description: item.description || item.product || '',
+    packaging: item.packaging || '',
+    qty: Number(item.qty) || 0,
+    nw: Number(item.nw) || 0,
+    unitPrice: Number(item.unitPrice || item.price) || 0,
+    total: Math.round((Number(item.qty) || 0) * (Number(item.unitPrice || item.price) || 0) * 100) / 100,
   }));
 
-  const subtotal = resolvedItems.reduce((s, it) => s + it.qty * it.price, 0);
-  const tax = Math.round(subtotal * TAX_RATE * 100) / 100;
-  const total = subtotal + tax;
+  const subtotal = resolvedItems.reduce((s, it) => s + it.total, 0);
+  const fees = Number(transportFees) || 0;
+  const tax = Number(manualTax) || 0;
+  const total = Math.round((subtotal + fees + tax) * 100) / 100;
 
   await execute(
-    `INSERT INTO invoices (id, number, customer_id, customer_name, date, due_date, subtotal, tax, total, status, items_json, company_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'draft', $10, 'amha-default')`,
-    [id, number, customerId, customer.name, date, dueDate, subtotal, tax, total, JSON.stringify(resolvedItems)]
+    `INSERT INTO invoices (id, number, customer_id, customer_name, att, container_number, date, due_date, subtotal, transport_fees, tax, total, status, items_json, company_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'draft', $13, 'amha-default')`,
+    [id, number, customerId, customer.name, att || '', containerNumber || '', date, dueDate, subtotal, fees, tax, total, JSON.stringify(resolvedItems)]
   );
 
-  const event = await eventStore.append({
+  await eventStore.append({
     eventType: 'INVOICE_CREATED',
     userId: req.headers['x-user-id'] || 'admin-default',
     entityType: 'invoice',
     entityId: id,
-    payload: { number, customer: customer.name, customerId, subtotal, tax, total, status: 'draft', items: resolvedItems },
+    payload: { number, customer: customer.name, subtotal, tax, total, status: 'draft' },
   });
 
   cache.del('dashboard:cache');
 
   res.status(201).json({
-    id, number, customer: customer.name, customerId, date, dueDate,
-    subtotal, tax, total, status: 'draft', items: resolvedItems,
-    _event: event.event_id,
+    id, number, customer: customer.name, customer_name: customer.name, customerId,
+    att: att || '', container_number: containerNumber || '',
+    date, due_date: dueDate, subtotal, transport_fees: fees, tax, total,
+    status: 'draft', items: resolvedItems,
   });
 }));
 
