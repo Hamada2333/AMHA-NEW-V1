@@ -18,13 +18,13 @@ export async function seedDatabase() {
 
   // ─── Company ───
   await execute(
-    `INSERT INTO companies (id, name, trn, address, email, phone) VALUES ($1, $2, $3, $4, $5, $6)`,
+    `INSERT INTO companies (id, name, trn, address, email, phone) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO NOTHING`,
     [COMPANY_ID, 'AMHA FOOD & STUFF TRADING L.L.C', '100XXXXXXXXX', 'Sharjah, UAE', 'info@amhafood.ae', '+971 6 XXX XXXX']
   );
 
   // ─── User ───
   await execute(
-    `INSERT INTO users (id, name, email, role, company_id) VALUES ($1, $2, $3, $4, $5)`,
+    `INSERT INTO users (id, name, email, role, company_id) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING`,
     [USER_ID, 'Admin User', 'admin@amhafood.ae', 'Administrator', COMPANY_ID]
   );
 
@@ -39,7 +39,7 @@ export async function seedDatabase() {
 
   for (const c of customers) {
     await execute(
-      `INSERT INTO customers (id, name, email, phone, address, balance, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      `INSERT INTO customers (id, name, email, phone, address, balance, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO NOTHING`,
       [c.id, c.name, c.email, c.phone, c.address, c.balance, COMPANY_ID]
     );
     await eventStore.append({
@@ -57,7 +57,7 @@ export async function seedDatabase() {
 
   for (const s of suppliers) {
     await execute(
-      `INSERT INTO suppliers (id, name, email, phone, address, category, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      `INSERT INTO suppliers (id, name, email, phone, address, category, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO NOTHING`,
       [s.id, s.name, s.email, s.phone, s.address, s.category, COMPANY_ID]
     );
     await eventStore.append({
@@ -80,7 +80,7 @@ export async function seedDatabase() {
 
   for (const p of products) {
     await execute(
-      `INSERT INTO products (id, name, sku, price, stock, category, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      `INSERT INTO products (id, name, sku, price, stock, category, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO NOTHING`,
       [p.id, p.name, p.sku, p.price, p.stock, p.category, COMPANY_ID]
     );
     await eventStore.append({
@@ -106,7 +106,7 @@ export async function seedDatabase() {
     const items = [{ product: prod.name, qty, price: prod.price }];
 
     await execute(
-      `INSERT INTO invoices (id, number, customer_id, customer_name, date, due_date, subtotal, tax, total, status, items_json, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      `INSERT INTO invoices (id, number, customer_id, customer_name, date, due_date, subtotal, tax, total, status, items_json, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT (id) DO NOTHING`,
       [invId, number, cust.id, cust.name, date, dueDate, subtotal, tax, total, status, JSON.stringify(items), COMPANY_ID]
     );
     await eventStore.append({
@@ -127,7 +127,7 @@ export async function seedDatabase() {
     const items = [{ product: prod.name, qty, price: prod.price }];
 
     await execute(
-      `INSERT INTO orders (id, number, customer_id, customer_name, date, total, status, items_json, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      `INSERT INTO orders (id, number, customer_id, customer_name, date, total, status, items_json, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (id) DO NOTHING`,
       [ordId, number, cust.id, cust.name, `2026-03-${String(1 + i * 3).padStart(2, '0')}`, total, orderStatuses[i % orderStatuses.length], JSON.stringify(items), COMPANY_ID]
     );
     await eventStore.append({
@@ -145,69 +145,13 @@ export async function seedDatabase() {
 
   for (const r of receipts) {
     await execute(
-      `INSERT INTO receipts (id, vendor, date, amount, category, account, linked, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      `INSERT INTO receipts (id, vendor, date, amount, category, account, linked, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (id) DO NOTHING`,
       [r.id, r.vendor, r.date, r.amount, r.category, r.account, r.linked, COMPANY_ID]
     );
   }
 
-  // ─── CRM Leads ───
-  const leads = [
-    { id: uuidv4(), name: 'Paradise Restaurants Group', contact: 'Ahmed Al-Hakim', email: 'ahmed@paradise.ae', phone: '+971 4 777 1111', status: 'new', value: 45000, notes: 'Interested in bulk rice & oil supply', lastContact: '2026-03-18' },
-    { id: uuidv4(), name: 'Oasis Hotel & Resorts', contact: 'Fatima Hassan', email: 'fatima@oasishotel.ae', phone: '+971 2 777 2222', status: 'contacted', value: 82000, notes: 'Meeting scheduled for next week', lastContact: '2026-03-15' },
-    { id: uuidv4(), name: 'Carrefour UAE', contact: 'David Chen', email: 'dchen@carrefour.ae', phone: '+971 4 777 3333', status: 'qualified', value: 150000, notes: 'Large wholesale deal in progress', lastContact: '2026-03-12' },
-    { id: uuidv4(), name: 'Spinneys Fresh Market', contact: 'Sarah Thompson', email: 'sarah@spinneys.ae', phone: '+971 4 777 4444', status: 'converted', value: 67000, notes: 'Contract signed — monthly delivery', lastContact: '2026-03-10' },
-    { id: uuidv4(), name: 'Le Meridien Catering', contact: 'Khalid Mansour', email: 'khalid@meridien.ae', phone: '+971 4 777 5555', status: 'new', value: 35000, notes: 'Initial inquiry received', lastContact: '2026-03-19' },
-  ];
-
-  for (const l of leads) {
-    await execute(
-      `INSERT INTO leads (id, name, contact, email, phone, status, value, notes, last_contact, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      [l.id, l.name, l.contact, l.email, l.phone, l.status, l.value, l.notes, l.lastContact, COMPANY_ID]
-    );
-  }
-
-  // ─── Journal Entries ───
-  const journals = [
-    { id: uuidv4(), date: '2026-03-01', description: 'Sales Revenue - Al Rayyan Trading', debit: '1200 - Accounts Receivable', credit: '3000 - Sales Revenue', amount: 15960 },
-    { id: uuidv4(), date: '2026-03-03', description: 'Purchase - Global Food Imports', debit: '5000 - Cost of Goods Sold', credit: '2100 - Accounts Payable', amount: 8400 },
-    { id: uuidv4(), date: '2026-03-05', description: 'Payment Received - Gulf Fresh Foods', debit: '1000 - Cash & Bank', credit: '1200 - Accounts Receivable', amount: 8820 },
-    { id: uuidv4(), date: '2026-03-08', description: 'Office Supplies', debit: '6100 - Office Expenses', credit: '1000 - Cash & Bank', amount: 1250 },
-    { id: uuidv4(), date: '2026-03-10', description: 'Sales Revenue - Emirates Wholesale', debit: '1200 - Accounts Receivable', credit: '3000 - Sales Revenue', amount: 24255 },
-    { id: uuidv4(), date: '2026-03-12', description: 'Rent Payment', debit: '6200 - Rent Expense', credit: '1000 - Cash & Bank', amount: 15000 },
-    { id: uuidv4(), date: '2026-03-15', description: 'VAT Payment', debit: '2200 - VAT Payable', credit: '1000 - Cash & Bank', amount: 3200 },
-  ];
-
-  for (const j of journals) {
-    await execute(
-      `INSERT INTO journal_entries (id, date, description, debit, credit, amount, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [j.id, j.date, j.description, j.debit, j.credit, j.amount, COMPANY_ID]
-    );
-  }
-
-  // ─── Chart of Accounts ───
-  const accounts = [
-    { code: '1000', name: 'Cash & Bank', type: 'Asset', balance: 245000 },
-    { code: '1200', name: 'Accounts Receivable', type: 'Asset', balance: 64200 },
-    { code: '1300', name: 'Inventory', type: 'Asset', balance: 128500 },
-    { code: '1500', name: 'Fixed Assets', type: 'Asset', balance: 85000 },
-    { code: '2100', name: 'Accounts Payable', type: 'Liability', balance: 42300 },
-    { code: '2200', name: 'VAT Payable', type: 'Liability', balance: 8750 },
-    { code: '3000', name: 'Sales Revenue', type: 'Revenue', balance: 712300 },
-    { code: '3100', name: 'Other Income', type: 'Revenue', balance: 5200 },
-    { code: '5000', name: 'Cost of Goods Sold', type: 'Expense', balance: 398400 },
-    { code: '6100', name: 'Office Expenses', type: 'Expense', balance: 18200 },
-    { code: '6200', name: 'Rent Expense', type: 'Expense', balance: 45000 },
-    { code: '6300', name: 'Utilities', type: 'Expense', balance: 12800 },
-    { code: '6400', name: 'Salaries & Wages', type: 'Expense', balance: 156000 },
-    { code: '9000', name: "Owner's Equity", type: 'Equity', balance: 350000 },
-  ];
-
-  for (const a of accounts) {
-    await execute(
-      `INSERT INTO chart_of_accounts (code, name, type, balance, company_id) VALUES ($1, $2, $3, $4, $5)`,
-      [a.code, a.name, a.type, a.balance, COMPANY_ID]
-    );
-  }
+  // CRM leads and accounting (journal entries + chart of accounts) are NOT seeded.
+  // They start empty and are populated by real business use.
 
   console.log('[Seed] Database seeded successfully!');
   console.log(`  - ${customers.length} customers`);
@@ -216,9 +160,7 @@ export async function seedDatabase() {
   console.log(`  - 12 invoices`);
   console.log(`  - 6 orders`);
   console.log(`  - ${receipts.length} receipts`);
-  console.log(`  - ${leads.length} CRM leads`);
-  console.log(`  - ${journals.length} journal entries`);
-  console.log(`  - ${accounts.length} chart of accounts items`);
+  console.log(`  - Accounting & CRM: empty (ready for real data)`);
 }
 
 export default seedDatabase;

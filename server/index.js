@@ -53,6 +53,19 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/attachments', attachmentRoutes);
 app.use('/api/accounting', accountingRoutes);
 
+// ─── ADMIN: Clear accounting + CRM data ───
+app.delete('/api/admin/clear-accounting-crm', async (_req, res) => {
+  try {
+    await execute('DELETE FROM journal_entries');
+    await execute('DELETE FROM chart_of_accounts');
+    await execute('DELETE FROM leads');
+    console.log('[Admin] Cleared accounting and CRM data');
+    res.json({ success: true, cleared: ['journal_entries', 'chart_of_accounts', 'leads'] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── HEALTH CHECK ───
 app.get('/api/health', async (_req, res) => {
   res.json({
