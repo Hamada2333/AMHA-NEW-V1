@@ -125,8 +125,6 @@ export const InvoicesPage = () => {
     } catch { setViewInvoice(inv); }
   };
 
-  const tdStyle = { border: '1px solid #ccc', padding: '6px 8px', fontSize: '12px' };
-  const thStyle = { ...tdStyle, background: '#1B6CA8', color: '#fff', fontWeight: 600, textAlign: 'center' };
 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -253,95 +251,159 @@ export const InvoicesPage = () => {
       </Modal>
 
       {/* ── Invoice View / Print Modal ── */}
-      <Modal open={!!viewInvoice} onClose={() => setViewInvoice(null)} title="" width={720}>
-        {viewInvoice && (
-          <div id="invoice-print" style={{ fontFamily: 'Arial, sans-serif', color: '#000', background: '#fff', padding: '8px' }}>
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <div style={{ fontSize: '12px', lineHeight: '1.8' }}>
-                <div style={{ fontWeight: 700, fontSize: '14px' }}>AMHA FOODSTUFF TRADING L.L.C</div>
-                <div>TEL.: +971585995281</div>
-                <div>AMHAFOODSTUFF@GMAIL.COM</div>
-                <div>TAX REG: 104025246000003</div>
-                <div>Dubai Investment Park First</div>
-                <div>Office Building 106</div>
-                <div>DUBAI UAE</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ width: '80px', height: '80px', background: '#1B6CA8', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '20px', margin: '0 auto 4px' }}>A</div>
-                <div style={{ fontSize: '10px', fontWeight: 700, color: '#1B6CA8' }}>A M H A</div>
-                <div style={{ fontSize: '8px', color: '#555' }}>FOODSTUFF TRADING L.L.C</div>
-              </div>
-            </div>
+      <Modal open={!!viewInvoice} onClose={() => setViewInvoice(null)} title="" width={760}>
+        {viewInvoice && (() => {
+          const cur = viewInvoice.currency || 'USD';
+          const curSym = cur === 'AED' ? 'AED' : cur === 'EUR' ? '€' : '$';
+          const td = { border: '1px solid #ccc', padding: '5px 7px', fontSize: '12px' };
+          const th = { ...td, background: '#1B6CA8', color: '#fff', fontWeight: 700, textAlign: 'center' };
+          const totalCF = Number(viewInvoice.subtotal || 0) + Number(viewInvoice.transport_fees || 0);
+          return (
+            <div id="invoice-print" style={{ fontFamily: 'Arial, sans-serif', color: '#000', background: '#fff', padding: '12px 16px' }}>
 
-            <div style={{ textAlign: 'center', fontWeight: 700, fontSize: '15px', marginBottom: '10px', textDecoration: 'underline' }}>
-              Invoice {viewInvoice.number}
-            </div>
+              {/* ── HEADER ── */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '18px' }}>
+                {/* Left: company info */}
+                <div style={{ fontSize: '12px', lineHeight: '1.75' }}>
+                  <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '2px' }}>AMHA FOODSTUFF TRADING L.L.C</div>
+                  <div>TEL.: +971585995281</div>
+                  <div style={{ color: '#1B6CA8' }}>AMHAFOODSTUFF@GMAIL.COM</div>
+                  <div>TAX REG: 104025246000003</div>
+                  <div>Dubai Investment Park First</div>
+                  <div>Office Building 106</div>
+                  <div>DUBAI UAE</div>
+                </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '12px' }}>
-              <div><strong>Att: {viewInvoice.att || viewInvoice.customer || viewInvoice.customer_name}</strong></div>
-              <div>
-                <div><strong>Date: {viewInvoice.date || fmtDate(viewInvoice.created_at)}</strong></div>
-                {viewInvoice.container_number && <div><strong>Container #{viewInvoice.container_number}</strong></div>}
+                {/* Right: AMHA logo */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ border: '2px solid #1B6CA8', width: '100px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
+                    <svg width="80" height="64" viewBox="0 0 80 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      {/* wheat stalks */}
+                      <line x1="40" y1="60" x2="40" y2="10" stroke="#1B6CA8" strokeWidth="1.5"/>
+                      <line x1="28" y1="60" x2="28" y2="18" stroke="#1B6CA8" strokeWidth="1.5"/>
+                      <line x1="52" y1="60" x2="52" y2="18" stroke="#1B6CA8" strokeWidth="1.5"/>
+                      <line x1="18" y1="60" x2="18" y2="26" stroke="#1B6CA8" strokeWidth="1.2"/>
+                      <line x1="62" y1="60" x2="62" y2="26" stroke="#1B6CA8" strokeWidth="1.2"/>
+                      {/* grain heads */}
+                      {[40,28,52,18,62].map((x,i) => {
+                        const y = [10,18,18,26,26][i];
+                        return <ellipse key={i} cx={x} cy={y} rx="5" ry="8" fill="#1B6CA8"/>;
+                      })}
+                      {/* connecting lines */}
+                      <line x1="18" y1="50" x2="28" y2="46" stroke="#1B6CA8" strokeWidth="1"/>
+                      <line x1="62" y1="50" x2="52" y2="46" stroke="#1B6CA8" strokeWidth="1"/>
+                      <line x1="28" y1="46" x2="40" y2="42" stroke="#1B6CA8" strokeWidth="1"/>
+                      <line x1="52" y1="46" x2="40" y2="42" stroke="#1B6CA8" strokeWidth="1"/>
+                    </svg>
+                  </div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#1B6CA8', letterSpacing: '3px' }}>A M H A</div>
+                  <div style={{ fontSize: '8px', color: '#555', letterSpacing: '1px' }}>A M H A FOODSTUFF TRADING L.L.C</div>
+                </div>
               </div>
-            </div>
 
-            {/* Items Table */}
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '8px' }}>
-              <thead>
-                <tr>
-                  {['Description', 'Packaging', 'Quantity', 'N.W', `U.Price(${CURRENCY_SYMBOLS[viewInvoice.currency] || '$'})`, `Total(${CURRENCY_SYMBOLS[viewInvoice.currency] || '$'})`].map(h => (
-                    <th key={h} style={thStyle}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {(viewInvoice.items || []).map((it, i) => (
-                  <tr key={i} style={{ background: i % 2 === 0 ? '#f9f9f9' : '#fff' }}>
-                    <td style={tdStyle}>{it.description || it.product}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>{it.packaging || '—'}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>{it.qty}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>{it.nw || '—'}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>{Number(it.unitPrice || it.price || 0).toFixed(2)}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>{Number(it.total || (it.qty * (it.unitPrice || it.price || 0))).toFixed(2)}</td>
-                  </tr>
-                ))}
-                {Number(viewInvoice.transport_fees) > 0 && (
+              {/* ── INVOICE TITLE ── */}
+              <div style={{ textAlign: 'center', fontWeight: 700, fontSize: '14px', textDecoration: 'underline', marginBottom: '10px' }}>
+                Invoice {viewInvoice.number}
+              </div>
+
+              {/* ── ATT + DATE ROW ── */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '12px' }}>
+                <div style={{ fontWeight: 700 }}>Att : {viewInvoice.att || viewInvoice.customer || viewInvoice.customer_name}</div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontWeight: 700 }}>Date :{viewInvoice.date || fmtDate(viewInvoice.created_at)}</div>
+                  {viewInvoice.container_number && (
+                    <div style={{ fontWeight: 700 }}>Container #{viewInvoice.container_number}</div>
+                  )}
+                </div>
+              </div>
+
+              {/* ── ITEMS TABLE ── */}
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '6px' }}>
+                <thead>
                   <tr>
-                    <td colSpan={5} style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>Transportation &amp; fees</td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>{Number(viewInvoice.transport_fees).toFixed(2)}</td>
+                    <th style={{ ...th, textAlign: 'left', width: '34%' }}>Description</th>
+                    <th style={th}>Packaging</th>
+                    <th style={th}>Quantity</th>
+                    <th style={th}>N.W</th>
+                    <th style={th}>U.Price({curSym})</th>
+                    <th style={th}>Total Price ({curSym})</th>
                   </tr>
-                )}
-                <tr>
-                  <td colSpan={5} style={{ ...tdStyle, textAlign: 'right', fontWeight: 700 }}>Total C&amp;F</td>
-                  <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 700 }}>{(Number(viewInvoice.subtotal) + Number(viewInvoice.transport_fees || 0)).toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td colSpan={5} style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>Vat</td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>{Number(viewInvoice.tax || 0).toFixed(2)}</td>
-                </tr>
-                <tr style={{ background: '#1B6CA8', color: '#fff' }}>
-                  <td colSpan={5} style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#fff', border: '1px solid #1B6CA8' }}>Grand Total {viewInvoice.number}</td>
-                  <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 700, color: '#fff', border: '1px solid #1B6CA8' }}>{Number(viewInvoice.total).toFixed(2)}</td>
-                </tr>
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {(viewInvoice.items || []).map((it, i) => (
+                    <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#f5f5f5' }}>
+                      <td style={td}>{it.description || it.product}</td>
+                      <td style={{ ...td, textAlign: 'center' }}>{it.packaging || ''}</td>
+                      <td style={{ ...td, textAlign: 'center' }}>{it.qty}</td>
+                      <td style={{ ...td, textAlign: 'center' }}>{it.nw || ''}</td>
+                      <td style={{ ...td, textAlign: 'right' }}>{Number(it.unitPrice || it.price || 0).toFixed(2)}</td>
+                      <td style={{ ...td, textAlign: 'right' }}>{Number(it.total != null ? it.total : (it.qty * (it.unitPrice || it.price || 0))).toFixed(2)}</td>
+                    </tr>
+                  ))}
 
-            {viewInvoice.container_number && (
-              <div style={{ fontSize: '11px', marginBottom: '8px' }}>Container #{viewInvoice.container_number}</div>
-            )}
-            <div style={{ fontSize: '11px', color: '#333', marginBottom: '16px' }}>
-              WE HEREBY CERTIFY THAT THIS INVOICE IS TRUE AND CORRECT.<br />
-              CONTENTS TRUE AND AUTHENTIC PRICE CORRECT &amp;CURRENT.<br />
-              AND THAT IS THE ONLY INVOICE ISSUED BY US FOR THE MERCHANDISE.
-            </div>
+                  {/* Transportation & fees — always show row, blank if zero */}
+                  <tr>
+                    <td colSpan={5} style={{ ...td, textAlign: 'left', fontWeight: 600 }}>Transportation &amp; fees</td>
+                    <td style={{ ...td, textAlign: 'right' }}>
+                      {Number(viewInvoice.transport_fees || 0) > 0 ? Number(viewInvoice.transport_fees).toFixed(2) : ''}
+                    </td>
+                  </tr>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
-              <Btn variant="ghost" onClick={() => setViewInvoice(null)}>Close</Btn>
-              <Btn onClick={() => window.print()}>Print</Btn>
+                  {/* Total C&F */}
+                  <tr>
+                    <td colSpan={5} style={{ ...td, textAlign: 'left', fontWeight: 700 }}>Total C&amp;F</td>
+                    <td style={{ ...td, textAlign: 'right', fontWeight: 700 }}>{totalCF.toFixed(2)}</td>
+                  </tr>
+
+                  {/* Vat */}
+                  <tr>
+                    <td colSpan={5} style={{ ...td, textAlign: 'left', fontWeight: 600 }}>Vat</td>
+                    <td style={{ ...td, textAlign: 'right' }}>{Number(viewInvoice.tax || 0).toFixed(2)}</td>
+                  </tr>
+
+                  {/* Grand Total */}
+                  <tr style={{ background: '#1B6CA8' }}>
+                    <td colSpan={5} style={{ ...td, textAlign: 'left', fontWeight: 700, color: '#fff', border: '1px solid #1B6CA8', fontSize: '13px' }}>
+                      Grand Total {viewInvoice.number}
+                    </td>
+                    <td style={{ ...td, textAlign: 'right', fontWeight: 700, color: '#fff', border: '1px solid #1B6CA8', fontSize: '13px' }}>
+                      {Number(viewInvoice.total || 0).toFixed(2)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              {/* ── FOOTER ── */}
+              {viewInvoice.container_number && (
+                <div style={{ fontSize: '11px', marginBottom: '6px' }}>Container #{viewInvoice.container_number}</div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '16px' }}>
+                <div style={{ fontSize: '11px', color: '#333', lineHeight: '1.7' }}>
+                  WE HEREBY CERTIFY THAT THIS INVOICE IS TRUE AND CORRECT.<br />
+                  CONTENTS TRUE AND AUTHENTIC PRICE CORRECT &amp;CURRENT.<br />
+                  AND THAT IS THE ONLY INVOICE ISSUED BY US FOR THE MERCHANDISE.
+                </div>
+                {/* Stamp placeholder */}
+                <div style={{ width: '90px', height: '90px', borderRadius: '50%', border: '3px solid #1B6CA8', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginLeft: '16px' }}>
+                  <div style={{ fontSize: '9px', fontWeight: 700, color: '#1B6CA8', textAlign: 'center', lineHeight: '1.4', letterSpacing: '1px' }}>
+                    <div>AMHA</div>
+                    <div>FOODSTUFF</div>
+                    <div>TRADING</div>
+                    <div>L.L.C</div>
+                    <div>DUBAI</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Buttons (hidden on print) */}
+              <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '16px' }}>
+                <Btn variant="ghost" onClick={() => setViewInvoice(null)}>Close</Btn>
+                <Btn onClick={() => window.print()}>Print / Save PDF</Btn>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </Modal>
 
       {/* ── Attachments Modal ── */}
