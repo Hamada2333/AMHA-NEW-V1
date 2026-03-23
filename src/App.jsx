@@ -6,6 +6,7 @@ import { ToastContainer } from './context/ToastContext';
 import Icon from './components/ui/Icon';
 import api, { connectWebSocket } from './api';
 
+import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import InvoicesPage from './pages/InvoicesPage';
 import OrdersPage from './pages/OrdersPage';
@@ -45,6 +46,7 @@ const NAV_ITEMS = [
 ];
 
 export default function App() {
+  const [authed, setAuthed] = useState(() => localStorage.getItem('amha_auth') === '1');
   const [activePage, setActivePage] = useState("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [invoices, setInvoices] = useState([]);
@@ -118,6 +120,15 @@ export default function App() {
     eventlog: <EventLogPage />,
     settings: <SettingsPage />,
   };
+
+  if (!authed) {
+    return (
+      <>
+        <style>{globalCSS}</style>
+        <LoginPage onLogin={() => setAuthed(true)} />
+      </>
+    );
+  }
 
   if (loading) {
     return (
@@ -232,6 +243,9 @@ export default function App() {
                   <span style={{ color: wsConnected ? THEME.success : THEME.warning, marginRight: "6px" }}>●</span>
                   AMHA FOOD & STUFF TRADING L.L.C
                 </div>
+                <button onClick={() => { localStorage.removeItem('amha_auth'); setAuthed(false); }} style={{ background: "none", border: `1px solid ${THEME.border}`, color: THEME.textMuted, padding: "6px 14px", borderRadius: "8px", fontSize: "12px", cursor: "pointer" }}>
+                  Logout
+                </button>
               </div>
             </header>
 
