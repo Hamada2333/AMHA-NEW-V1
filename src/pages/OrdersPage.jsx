@@ -54,6 +54,14 @@ export const OrdersPage = () => {
   const addItem = () => setFormData(f => ({ ...f, items: [...f.items, { ...EMPTY_ITEM }] }));
   const removeItem = (idx) => setFormData(f => ({ ...f, items: f.items.filter((_, i) => i !== idx) }));
 
+  const selectProduct = (idx, productId) => {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    const items = [...formData.items];
+    items[idx] = { ...items[idx], description: product.name, unitPrice: product.price, _productId: productId };
+    setFormData(f => ({ ...f, items }));
+  };
+
   const handleCustomerChange = (customerId) => {
     const customer = customers.find(c => c.id === customerId);
     setFormData(f => ({ ...f, customerId, currency: customer?.currency || 'USD' }));
@@ -231,8 +239,8 @@ export const OrdersPage = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
               <tr style={{ background: THEME.surface }}>
-                {['#', 'Description / Product', `Qty`, `Unit Price (${sym})`, `Total (${sym})`, ''].map((h, i) => (
-                  <th key={i} style={{ padding: '10px 8px', borderBottom: `1px solid ${THEME.border}`, fontWeight: 600, color: THEME.textMuted, textAlign: i >= 2 ? 'right' : 'left', whiteSpace: 'nowrap', fontSize: '12px' }}>{h}</th>
+                {['#', 'Product', 'Description', `Qty`, `Unit Price (${sym})`, `Total (${sym})`, ''].map((h, i) => (
+                  <th key={i} style={{ padding: '10px 8px', borderBottom: `1px solid ${THEME.border}`, fontWeight: 600, color: THEME.textMuted, textAlign: i >= 3 ? 'right' : 'left', whiteSpace: 'nowrap', fontSize: '12px' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -243,16 +251,18 @@ export const OrdersPage = () => {
                   <tr key={idx} style={{ borderBottom: `1px solid ${THEME.border}` }}>
                     <td style={{ padding: '6px 8px', color: THEME.textDim, fontSize: '12px', width: '30px' }}>{idx + 1}</td>
                     <td style={{ padding: '4px 6px' }}>
+                      <select value={it._productId || ''} onChange={e => selectProduct(idx, e.target.value)} style={{ width: '140px', fontSize: '12px' }}>
+                        <option value="">— pick product —</option>
+                        {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                      </select>
+                    </td>
+                    <td style={{ padding: '4px 6px' }}>
                       <input
                         value={it.description}
                         onChange={e => setItem(idx, 'description', e.target.value)}
-                        placeholder="Product or service description"
-                        list={`products-list-${idx}`}
-                        style={{ width: '100%', minWidth: '200px' }}
+                        placeholder="or type manually"
+                        style={{ width: '160px' }}
                       />
-                      <datalist id={`products-list-${idx}`}>
-                        {products.map(p => <option key={p.id} value={p.name} />)}
-                      </datalist>
                     </td>
                     <td style={{ padding: '4px 6px', textAlign: 'right' }}>
                       <input type="number" min="0" value={it.qty} onChange={e => setItem(idx, 'qty', e.target.value)} placeholder="0" style={{ width: '70px', textAlign: 'right' }} />
