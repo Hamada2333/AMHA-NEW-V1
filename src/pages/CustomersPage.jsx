@@ -14,7 +14,8 @@ import Card from '../components/ui/Card';
 import Icon from '../components/ui/Icon';
 import FileAttachment from '../components/ui/FileAttachment';
 
-const EMPTY_FORM = { name: '', email: '', phone: '', address: '' };
+const CURRENCIES = ['USD', 'EUR', 'AED'];
+const EMPTY_FORM = { name: '', email: '', phone: '', address: '', currency: 'USD' };
 
 export const CustomersPage = () => {
   const { customers, setCustomers } = useAppContext();
@@ -31,7 +32,7 @@ export const CustomersPage = () => {
   });
 
   const openCreate = () => { setEditingId(null); setFormData(EMPTY_FORM); setModalOpen(true); };
-  const openEdit = (c) => { setEditingId(c.id); setFormData({ name: c.name, email: c.email || '', phone: c.phone || '', address: c.address || '' }); setModalOpen(true); };
+  const openEdit = (c) => { setEditingId(c.id); setFormData({ name: c.name, email: c.email || '', phone: c.phone || '', address: c.address || '', currency: c.currency || 'USD' }); setModalOpen(true); };
 
   const handleSave = async () => {
     try {
@@ -78,6 +79,7 @@ export const CustomersPage = () => {
                 <th>Customer Name</th>
                 <th>Contact Email</th>
                 <th>Phone</th>
+                <th>Currency</th>
                 <th>Outstanding Balance</th>
                 <th>Actions</th>
               </tr>
@@ -88,6 +90,7 @@ export const CustomersPage = () => {
                   <td style={{ fontWeight: 600, color: THEME.text }}>{c.name}</td>
                   <td style={{ color: THEME.textMuted }}>{c.email}</td>
                   <td style={{ color: THEME.textMuted }}>{c.phone}</td>
+                  <td><span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, background: THEME.accentLight, color: THEME.accent }}>{c.currency || 'USD'}</span></td>
                   <td style={{ fontWeight: 600, color: c.balance > 0 ? THEME.warning : THEME.text, fontFamily: "'JetBrains Mono', monospace" }}>{fmt(c.balance)}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '4px' }}>
@@ -118,9 +121,16 @@ export const CustomersPage = () => {
             <input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="+971..." />
           </FormField>
         </FormRow>
-        <FormField label="Address">
-          <input value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} placeholder="City, Country" style={{ marginTop: '16px' }} />
-        </FormField>
+        <FormRow>
+          <FormField label="Address">
+            <input value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} placeholder="City, Country" />
+          </FormField>
+          <FormField label="Currency">
+            <select value={formData.currency} onChange={e => setFormData({ ...formData, currency: e.target.value })}>
+              {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </FormField>
+        </FormRow>
         <FileAttachment entityType="customer" entityId={editingId} />
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
           <Btn variant="ghost" onClick={() => setModalOpen(false)}>Cancel</Btn>

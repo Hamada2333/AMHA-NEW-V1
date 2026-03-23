@@ -20,13 +20,14 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 router.post('/', asyncHandler(async (req, res) => {
-  const { name, email, phone, address } = req.body;
+  const { name, email, phone, address, currency } = req.body;
   if (!name) return res.status(400).json({ error: 'Name is required' });
 
   const id = uuidv4();
+  const cur = ['USD', 'EUR', 'AED'].includes(currency) ? currency : 'USD';
   await execute(
-    `INSERT INTO customers (id, name, email, phone, address, balance, company_id) VALUES ($1, $2, $3, $4, $5, 0, 'amha-default')`,
-    [id, name, email || '', phone || '', address || '']
+    `INSERT INTO customers (id, name, email, phone, address, balance, currency, company_id) VALUES ($1, $2, $3, $4, $5, 0, $6, 'amha-default')`,
+    [id, name, email || '', phone || '', address || '', cur]
   );
 
   await eventStore.append({
@@ -34,21 +35,22 @@ router.post('/', asyncHandler(async (req, res) => {
     userId: req.headers['x-user-id'] || 'admin-default',
     entityType: 'customer',
     entityId: id,
-    payload: { name, email, phone, address, balance: 0 },
+    payload: { name, email, phone, address, balance: 0, currency: cur },
   });
 
   cache.del('dashboard:cache');
-  res.status(201).json({ id, name, email, phone, address, balance: 0 });
+  res.status(201).json({ id, name, email, phone, address, balance: 0, currency: cur });
 }));
 
 router.put('/:id', asyncHandler(async (req, res) => {
   const existing = await queryOne('SELECT * FROM customers WHERE id = $1', [req.params.id]);
   if (!existing) return res.status(404).json({ error: 'Customer not found' });
 
-  const { name, email, phone, address } = req.body;
+  const { name, email, phone, address, currency } = req.body;
+  const cur = ['USD', 'EUR', 'AED'].includes(currency) ? currency : (existing.currency || 'USD');
   await execute(
-    'UPDATE customers SET name = $1, email = $2, phone = $3, address = $4 WHERE id = $5',
-    [name || existing.name, email || existing.email, phone || existing.phone, address || existing.address, req.params.id]
+    'UPDATE customers SET name = $1, email = $2, phone = $3, address = $4, currency = $5 WHERE id = $6',
+    [name || existing.name, email || existing.email, phone || existing.phone, address || existing.address, cur, req.params.id]
   );
 
   await eventStore.append({
@@ -57,12 +59,12 @@ router.put('/:id', asyncHandler(async (req, res) => {
     entityType: 'customer',
     entityId: req.params.id,
     payload: {
-      before: { name: existing.name, email: existing.email, phone: existing.phone, address: existing.address },
-      after: { name: name || existing.name, email: email || existing.email, phone: phone || existing.phone, address: address || existing.address },
+      before: { name: existing.name, email: existing.email, currency: existing.currency },
+      after: { name: name || existing.name, email: email || existing.email, currency: cur },
     },
   });
 
-  res.json({ id: req.params.id, name: name || existing.name, email: email || existing.email, phone: phone || existing.phone, address: address || existing.address });
+  res.json({ id: req.params.id, name: name || existing.name, email: email || existing.email, phone: phone || existing.phone, address: address || existing.address, currency: cur });
 }));
 
 router.delete('/:id', asyncHandler(async (req, res) => {

@@ -15,8 +15,11 @@ import { FormField, FormRow } from '../components/ui/Form';
 import Card from '../components/ui/Card';
 import FileAttachment from '../components/ui/FileAttachment';
 
+const CURRENCY_SYMBOLS = { USD: '$', EUR: '€', AED: 'AED ' };
+const VAT_RATE = 0.05;
+
 const EMPTY_ITEM = { description: '', packaging: '', qty: '', nw: '', unitPrice: '' };
-const EMPTY_FORM = { customerId: '', att: '', containerNumber: '', transportFees: '', tax: '', items: [{ ...EMPTY_ITEM }] };
+const EMPTY_FORM = { customerId: '', currency: 'USD', att: '', containerNumber: '', transportFees: '', tax: '', items: [{ ...EMPTY_ITEM }] };
 
 export const InvoicesPage = () => {
   const { invoices, customers, setInvoices } = useAppContext();
@@ -50,10 +53,18 @@ export const InvoicesPage = () => {
   const addItem = () => setFormData(f => ({ ...f, items: [...f.items, { ...EMPTY_ITEM }] }));
   const removeItem = (idx) => setFormData(f => ({ ...f, items: f.items.filter((_, i) => i !== idx) }));
 
+  const sym = CURRENCY_SYMBOLS[formData.currency] || '$';
+
   const subtotal = formData.items.reduce((s, it) => s + (Number(it.qty) * Number(it.unitPrice) || 0), 0);
   const fees = Number(formData.transportFees) || 0;
-  const tax = Number(formData.tax) || 0;
+  const autoVat = Math.round((subtotal + fees) * VAT_RATE * 100) / 100;
+  const tax = formData.tax === '' ? autoVat : Number(formData.tax);
   const grandTotal = subtotal + fees + tax;
+
+  const handleCustomerChange = (customerId) => {
+    const customer = customers.find(c => c.id === customerId);
+    setFormData(f => ({ ...f, customerId, currency: customer?.currency || 'USD', tax: '' }));
+  };
 
   const handleCreate = async () => {
     try {
@@ -61,6 +72,7 @@ export const InvoicesPage = () => {
       if (formData.items.every(it => !it.description)) { addToast('Add at least one item', 'error'); return; }
       const res = await api.post('/invoices', {
         customerId: formData.customerId,
+        currency: formData.currency,
         att: formData.att,
         containerNumber: formData.containerNumber,
         transportFees: fees,
@@ -144,7 +156,7 @@ export const InvoicesPage = () => {
                 <tr key={i.id}>
                   <td style={{ fontWeight: 600, color: THEME.text }}>{i.number}</td>
                   <td style={{ color: THEME.textMuted }}>{i.customer || i.customer_name}</td>
-                  <td style={{ fontWeight: 500, fontFamily: "'JetBrains Mono', monospace" }}>{fmt(i.total)}</td>
+                  <td style={{ fontWeight: 500, fontFamily: "'JetBrains Mono', monospace" }}>{CURRENCY_SYMBOLS[i.currency] || '$'}{fmt(i.total)}</td>
                   <td style={{ color: THEME.textMuted }}>{fmtDate(i.due_date || i.dueDate)}</td>
                   <td><Badge status={i.status} /></td>
                   <td>
@@ -181,9 +193,9 @@ export const InvoicesPage = () => {
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Create Invoice" width={780}>
         <FormRow>
           <FormField label="Customer">
-            <select value={formData.customerId} onChange={e => setFormData(f => ({ ...f, customerId: e.target.value }))}>
+            <select value={formData.customerId} onChange={e => handleCustomerChange(e.target.value)}>
               <option value="">Choose customer...</option>
-              {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {customers.map(c => <option key={c.id} value={c.id}>{c.name} ({c.currency || 'USD'})</option>)}
             </select>
           </FormField>
           <FormField label="Att (Contact Person)">
@@ -199,7 +211,7 @@ export const InvoicesPage = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
               <tr>
-                {['Description', 'Packaging', 'Qty', 'N.W', 'Unit Price ($)', 'Total', ''].map(h => (
+                {['Description', 'Packaging', 'Qty', 'N.W', `Unit Price (${sym})`, 'Total', ''].map(h => (
                   <th key={h} style={{ background: THEME.surface, padding: '8px 6px', borderBottom: `2px solid ${THEME.border}`, fontWeight: 600, color: THEME.textMuted, textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -222,15 +234,15 @@ export const InvoicesPage = () => {
         <button onClick={addItem} style={{ fontSize: '13px', color: THEME.accent, background: 'none', border: `1px dashed ${THEME.accent}`, borderRadius: '6px', padding: '6px 14px', cursor: 'pointer', marginBottom: '16px' }}>+ Add Line Item</button>
 
         <FormRow>
-          <FormField label="Transport & Fees ($)">
-            <input type="number" step="0.01" value={formData.transportFees} onChange={e => setFormData(f => ({ ...f, transportFees: e.target.value }))} placeholder="0.00" />
+          <FormField label={`Transport & Fees (${sym})`}>
+            <input type="number" step="0.01" value={formData.transportFees} onChange={e => setFormData(f => ({ ...f, transportFees: e.target.value, tax: '' }))} placeholder="0.00" />
           </FormField>
-          <FormField label="VAT ($)">
-            <input type="number" step="0.01" value={formData.tax} onChange={e => setFormData(f => ({ ...f, tax: e.target.value }))} placeholder="0.00" />
+          <FormField label={`VAT 5% (${sym}) — auto-calculated`}>
+            <input type="number" step="0.01" value={formData.tax === '' ? autoVat.toFixed(2) : formData.tax} onChange={e => setFormData(f => ({ ...f, tax: e.target.value }))} placeholder={autoVat.toFixed(2)} />
           </FormField>
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '4px' }}>
-            <div style={{ fontSize: '12px', color: THEME.textMuted }}>Subtotal: <strong>${subtotal.toFixed(2)}</strong></div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: THEME.text }}>Grand Total: ${grandTotal.toFixed(2)}</div>
+            <div style={{ fontSize: '12px', color: THEME.textMuted }}>Subtotal: <strong>{sym}{subtotal.toFixed(2)}</strong></div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: THEME.text }}>Grand Total: {sym}{grandTotal.toFixed(2)}</div>
           </div>
         </FormRow>
 
@@ -278,7 +290,7 @@ export const InvoicesPage = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '8px' }}>
               <thead>
                 <tr>
-                  {['Description', 'Packaging', 'Quantity', 'N.W', 'U.Price($)', 'Total Price($)'].map(h => (
+                  {['Description', 'Packaging', 'Quantity', 'N.W', `U.Price(${CURRENCY_SYMBOLS[viewInvoice.currency] || '$'})`, `Total(${CURRENCY_SYMBOLS[viewInvoice.currency] || '$'})`].map(h => (
                     <th key={h} style={thStyle}>{h}</th>
                   ))}
                 </tr>

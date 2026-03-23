@@ -30,10 +30,12 @@ router.get('/:id/history', asyncHandler(async (req, res) => {
 
 // POST create invoice
 router.post('/', asyncHandler(async (req, res) => {
-  const { customerId, att, containerNumber, items, transportFees, tax: manualTax } = req.body;
+  const { customerId, att, containerNumber, items, transportFees, tax: manualTax, currency: reqCurrency } = req.body;
 
   const customer = await queryOne('SELECT * FROM customers WHERE id = $1', [customerId]);
   if (!customer) return res.status(400).json({ error: 'Customer not found' });
+
+  const currency = ['USD', 'EUR', 'AED'].includes(reqCurrency) ? reqCurrency : (customer.currency || 'USD');
 
   const countRow = await queryOne('SELECT COUNT(*) as count FROM invoices');
   const invoiceCount = parseInt(countRow.count);
@@ -57,9 +59,9 @@ router.post('/', asyncHandler(async (req, res) => {
   const total = Math.round((subtotal + fees + tax) * 100) / 100;
 
   await execute(
-    `INSERT INTO invoices (id, number, customer_id, customer_name, att, container_number, date, due_date, subtotal, transport_fees, tax, total, status, items_json, company_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'draft', $13, 'amha-default')`,
-    [id, number, customerId, customer.name, att || '', containerNumber || '', date, dueDate, subtotal, fees, tax, total, JSON.stringify(resolvedItems)]
+    `INSERT INTO invoices (id, number, customer_id, customer_name, att, container_number, date, due_date, subtotal, transport_fees, tax, total, status, items_json, currency, company_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'draft', $13, $14, 'amha-default')`,
+    [id, number, customerId, customer.name, att || '', containerNumber || '', date, dueDate, subtotal, fees, tax, total, JSON.stringify(resolvedItems), currency]
   );
 
   await eventStore.append({
@@ -76,7 +78,7 @@ router.post('/', asyncHandler(async (req, res) => {
     id, number, customer: customer.name, customer_name: customer.name, customerId,
     att: att || '', container_number: containerNumber || '',
     date, due_date: dueDate, subtotal, transport_fees: fees, tax, total,
-    status: 'draft', items: resolvedItems,
+    status: 'draft', items: resolvedItems, currency,
   });
 }));
 

@@ -126,6 +126,9 @@ export async function initSchema() {
     ALTER TABLE invoices ADD COLUMN IF NOT EXISTS att TEXT DEFAULT '';
     ALTER TABLE invoices ADD COLUMN IF NOT EXISTS container_number TEXT DEFAULT '';
     ALTER TABLE invoices ADD COLUMN IF NOT EXISTS transport_fees REAL DEFAULT 0;
+    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'USD';
+
+    ALTER TABLE customers ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'USD';
 
     CREATE TABLE IF NOT EXISTS orders (
       id TEXT PRIMARY KEY,
