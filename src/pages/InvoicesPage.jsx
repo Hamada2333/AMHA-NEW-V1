@@ -262,48 +262,22 @@ export const InvoicesPage = () => {
             <div id="invoice-print" style={{ fontFamily: 'Arial, sans-serif', color: '#000', background: '#fff', padding: '12px 16px' }}>
 
               {/* ── HEADER ── */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '18px' }}>
-                {/* Left: company info */}
-                <div style={{ fontSize: '12px', lineHeight: '1.75' }}>
-                  <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '2px' }}>AMHA FOODSTUFF TRADING L.L.C</div>
-                  <div>TEL.: +971585995281</div>
-                  <div style={{ color: '#1B6CA8' }}>AMHAFOODSTUFF@GMAIL.COM</div>
-                  <div>TAX REG: 104025246000003</div>
-                  <div>Dubai Investment Park First</div>
-                  <div>Office Building 106</div>
-                  <div>DUBAI UAE</div>
-                </div>
-
-                {/* Right: AMHA logo */}
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ border: '2px solid #1B6CA8', width: '100px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
-                    <svg width="80" height="64" viewBox="0 0 80 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      {/* wheat stalks */}
-                      <line x1="40" y1="60" x2="40" y2="10" stroke="#1B6CA8" strokeWidth="1.5"/>
-                      <line x1="28" y1="60" x2="28" y2="18" stroke="#1B6CA8" strokeWidth="1.5"/>
-                      <line x1="52" y1="60" x2="52" y2="18" stroke="#1B6CA8" strokeWidth="1.5"/>
-                      <line x1="18" y1="60" x2="18" y2="26" stroke="#1B6CA8" strokeWidth="1.2"/>
-                      <line x1="62" y1="60" x2="62" y2="26" stroke="#1B6CA8" strokeWidth="1.2"/>
-                      {/* grain heads */}
-                      {[40,28,52,18,62].map((x,i) => {
-                        const y = [10,18,18,26,26][i];
-                        return <ellipse key={i} cx={x} cy={y} rx="5" ry="8" fill="#1B6CA8"/>;
-                      })}
-                      {/* connecting lines */}
-                      <line x1="18" y1="50" x2="28" y2="46" stroke="#1B6CA8" strokeWidth="1"/>
-                      <line x1="62" y1="50" x2="52" y2="46" stroke="#1B6CA8" strokeWidth="1"/>
-                      <line x1="28" y1="46" x2="40" y2="42" stroke="#1B6CA8" strokeWidth="1"/>
-                      <line x1="52" y1="46" x2="40" y2="42" stroke="#1B6CA8" strokeWidth="1"/>
-                    </svg>
-                  </div>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#1B6CA8', letterSpacing: '3px' }}>A M H A</div>
-                  <div style={{ fontSize: '8px', color: '#555', letterSpacing: '1px' }}>A M H A FOODSTUFF TRADING L.L.C</div>
-                </div>
+              <div style={{ fontSize: '12px', lineHeight: '1.75', marginBottom: '18px' }}>
+                <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '2px' }}>AMHA FOODSTUFF TRADING L.L.C</div>
+                <div>TEL.: +971585995281</div>
+                <div style={{ color: '#1B6CA8' }}>AMHAFOODSTUFF@GMAIL.COM</div>
+                <div>TAX REG: 104025246000003</div>
+                <div>Dubai Investment Park First</div>
+                <div>Office Building 106</div>
+                <div>DUBAI UAE</div>
               </div>
 
-              {/* ── INVOICE TITLE ── */}
-              <div style={{ textAlign: 'center', fontWeight: 700, fontSize: '14px', textDecoration: 'underline', marginBottom: '10px' }}>
-                Invoice {viewInvoice.number}
+              {/* ── TAX INVOICE TITLE ── */}
+              <div style={{ textAlign: 'center', fontWeight: 700, fontSize: '15px', textDecoration: 'underline', marginBottom: '2px' }}>
+                TAX INVOICE
+              </div>
+              <div style={{ textAlign: 'center', fontWeight: 700, fontSize: '13px', marginBottom: '10px' }}>
+                {viewInvoice.number}
               </div>
 
               {/* ── ATT + DATE ROW ── */}
