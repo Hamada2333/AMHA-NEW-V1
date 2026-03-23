@@ -15,27 +15,36 @@ router.get('/', asyncHandler(async (_req, res) => {
 }));
 
 router.post('/', asyncHandler(async (req, res) => {
-  const { customerId, items } = req.body;
+  const { customerId, items, notes, deliveryDate, paymentTerms, currency: reqCurrency } = req.body;
 
   const customer = await queryOne('SELECT * FROM customers WHERE id = $1', [customerId]);
   if (!customer) return res.status(400).json({ error: 'Customer not found' });
+
+  const currency = ['USD', 'EUR', 'AED'].includes(reqCurrency) ? reqCurrency : (customer.currency || 'USD');
 
   const countRow = await queryOne('SELECT COUNT(*) as count FROM orders');
   const orderCount = parseInt(countRow.count);
   const id = uuidv4();
   const number = `ORD-${String(2001 + orderCount).padStart(5, '0')}`;
   const date = new Date().toISOString().split('T')[0];
+  const delivery = deliveryDate || '';
+  const terms = paymentTerms || 'Net 30';
 
-  const resolvedItems = await Promise.all(items.map(async item => {
-    const prod = await queryOne('SELECT * FROM products WHERE id = $1', [item.productId]);
-    return { product: prod?.name || item.product, qty: Number(item.qty), price: prod?.price || Number(item.price) };
+  const resolvedItems = (items || []).map(item => ({
+    description: item.description || item.product || '',
+    qty: Number(item.qty) || 0,
+    unitPrice: Number(item.unitPrice || item.price) || 0,
+    total: Math.round((Number(item.qty) || 0) * (Number(item.unitPrice || item.price) || 0) * 100) / 100,
   }));
 
-  const total = resolvedItems.reduce((s, it) => s + it.qty * it.price, 0) * (1 + TAX_RATE);
+  const subtotal = resolvedItems.reduce((s, it) => s + it.total, 0);
+  const tax = Math.round(subtotal * TAX_RATE * 100) / 100;
+  const total = Math.round((subtotal + tax) * 100) / 100;
 
   await execute(
-    `INSERT INTO orders (id, number, customer_id, customer_name, date, total, status, items_json, company_id) VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7, 'amha-default')`,
-    [id, number, customerId, customer.name, date, Math.round(total * 100) / 100, JSON.stringify(resolvedItems)]
+    `INSERT INTO orders (id, number, customer_id, customer_name, date, subtotal, tax, total, status, items_json, currency, notes, delivery_date, payment_terms, company_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending', $9, $10, $11, $12, $13, 'amha-default')`,
+    [id, number, customerId, customer.name, date, subtotal, tax, total, JSON.stringify(resolvedItems), currency, notes || '', delivery, terms]
   );
 
   await eventStore.append({
@@ -47,7 +56,7 @@ router.post('/', asyncHandler(async (req, res) => {
   });
 
   cache.del('dashboard:cache');
-  res.status(201).json({ id, number, customer: customer.name, customerId, date, total, status: 'pending', items: resolvedItems });
+  res.status(201).json({ id, number, customer: customer.name, customer_name: customer.name, customerId, date, subtotal, tax, total, status: 'pending', items: resolvedItems, currency, notes: notes || '', delivery_date: delivery, payment_terms: terms });
 }));
 
 // Convert order to invoice
