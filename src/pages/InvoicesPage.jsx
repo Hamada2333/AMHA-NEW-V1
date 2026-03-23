@@ -22,7 +22,7 @@ const EMPTY_ITEM = { description: '', packaging: '', qty: '', nw: '', unitPrice:
 const EMPTY_FORM = { customerId: '', currency: 'USD', att: '', containerNumber: '', transportFees: '', tax: '', items: [{ ...EMPTY_ITEM }] };
 
 export const InvoicesPage = () => {
-  const { invoices, customers, setInvoices } = useAppContext();
+  const { invoices, customers, products, setInvoices } = useAppContext();
   const addToast = useToast();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
@@ -41,12 +41,14 @@ export const InvoicesPage = () => {
   const setItem = (idx, field, val) => {
     const items = [...formData.items];
     items[idx] = { ...items[idx], [field]: val };
-    // Auto-calc total
-    if (field === 'qty' || field === 'unitPrice') {
-      const q = field === 'qty' ? Number(val) : Number(items[idx].qty);
-      const p = field === 'unitPrice' ? Number(val) : Number(items[idx].unitPrice);
-      items[idx]._total = (q * p).toFixed(2);
-    }
+    setFormData(f => ({ ...f, items }));
+  };
+
+  const selectProduct = (idx, productId) => {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    const items = [...formData.items];
+    items[idx] = { ...items[idx], description: product.name, unitPrice: product.price, _productId: productId };
     setFormData(f => ({ ...f, items }));
   };
 
@@ -209,7 +211,7 @@ export const InvoicesPage = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
               <tr>
-                {['Description', 'Packaging', 'Qty', 'N.W', `Unit Price (${sym})`, 'Total', ''].map(h => (
+                {['Product', 'Description', 'Packaging', 'Qty', 'N.W', `Unit Price (${sym})`, 'Total', ''].map(h => (
                   <th key={h} style={{ background: THEME.surface, padding: '8px 6px', borderBottom: `2px solid ${THEME.border}`, fontWeight: 600, color: THEME.textMuted, textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -217,7 +219,13 @@ export const InvoicesPage = () => {
             <tbody>
               {formData.items.map((it, idx) => (
                 <tr key={idx}>
-                  <td style={{ padding: '4px 4px' }}><input value={it.description} onChange={e => setItem(idx, 'description', e.target.value)} placeholder="Product description" style={{ width: '160px' }} /></td>
+                  <td style={{ padding: '4px 4px' }}>
+                    <select value={it._productId || ''} onChange={e => selectProduct(idx, e.target.value)} style={{ width: '140px', fontSize: '12px' }}>
+                      <option value="">— pick product —</option>
+                      {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </td>
+                  <td style={{ padding: '4px 4px' }}><input value={it.description} onChange={e => setItem(idx, 'description', e.target.value)} placeholder="or type manually" style={{ width: '150px' }} /></td>
                   <td style={{ padding: '4px 4px' }}><input value={it.packaging} onChange={e => setItem(idx, 'packaging', e.target.value)} placeholder="900gr x 30" style={{ width: '90px' }} /></td>
                   <td style={{ padding: '4px 4px' }}><input type="number" value={it.qty} onChange={e => setItem(idx, 'qty', e.target.value)} placeholder="0" style={{ width: '60px' }} /></td>
                   <td style={{ padding: '4px 4px' }}><input type="number" value={it.nw} onChange={e => setItem(idx, 'nw', e.target.value)} placeholder="0" style={{ width: '60px' }} /></td>
